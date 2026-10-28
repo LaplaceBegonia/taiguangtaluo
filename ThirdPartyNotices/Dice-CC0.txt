@@ -1,0 +1,13 @@
+Asset: D12 dodecahedral die (Board Game Pieces, Dice and Tokens)
+Source: https://3dassets.dev/assets/tabletop-game-components-d12-dodecahedron-f87385ea
+Canonical pack: https://3dassets.dev/packs/tabletop-game-components
+API record: https://3dassets.dev/api/v1/packs/tabletop-game-components
+Downloaded mesh: https://cdn.3dassets.dev/assets/20842/v1/model.glb
+Contributor: 3D Assets
+License: CC0 1.0 Universal
+License text: https://creativecommons.org/publicdomain/zero/1.0/legalcode
+Source metadata identifies the asset as AI generated.
+
+The body mesh was extracted and normalized to a unit radius.
+Materials, face labels, Unity physics, shadows, UI and interpretation
+were authored for this project. No third-party gameplay code was imported.
