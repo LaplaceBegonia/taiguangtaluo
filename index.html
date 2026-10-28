@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#121018">
+  <title>苔光塔罗 · Verdant Arcana</title>
+  <style>
+    :root{color-scheme:dark;font-family:"Microsoft YaHei",system-ui,sans-serif;color:#eee9e2;background:#100e16}
+    *{box-sizing:border-box}body{margin:0;overflow:hidden}button{font:inherit;cursor:pointer}
+    #game{position:fixed;inset:0;background:#100e16}canvas{width:100%;height:100%;display:block;outline:none}
+    #welcome{position:fixed;inset:0;display:grid;place-items:center;background:radial-gradient(ellipse at 50% 30%,#3a2b48 0%,#17141f 50%,#0b0a10 100%);z-index:3}
+    .panel{text-align:center;max-width:600px;padding:32px}.mark{font-size:70px;color:#ddc69c;margin-bottom:24px}
+    .eyebrow{font-size:11px;letter-spacing:5px;color:#baab99}h1{font-size:42px;font-weight:400;letter-spacing:12px;margin:18px 0 22px}
+    .description{font-size:15px;line-height:2;color:#c4bacd}.begin{padding:13px 48px;background:#ddc69c;color:#201923;border:0;border-radius:4px;margin:24px 0 12px;min-width:230px}
+    .begin:disabled{opacity:.55;cursor:wait}progress{display:block;margin:20px auto 12px;width:270px;height:5px;accent-color:#ddc69c}
+    #status{font-size:13px;line-height:1.8;color:#b5aabe;min-height:24px}.foot{font-size:12px;color:#8e8499;margin-top:28px;line-height:1.9}
+    #toolbar{position:fixed;bottom:6px;left:8px;z-index:2;display:none;gap:6px}#toolbar button{border:1px solid #ddc69c40;background:#17131dd9;color:#d8c6ae;padding:5px 9px;border-radius:4px;font-size:11px}
+    #portrait{display:none;position:fixed;bottom:45px;left:20px;right:20px;z-index:2;text-align:center;background:#17131ddd;padding:12px;border-radius:6px;font-size:13px;pointer-events:none}
+    @media(orientation:portrait){#portrait{display:block}h1{font-size:34px}}
+  </style>
+</head>
+<body>
+  <main id="game"><canvas id="unity-canvas" width="1600" height="900" tabindex="0" aria-label="苔光塔罗游戏牌桌"></canvas></main>
+  <section id="welcome" aria-label="加载游戏"><div class="panel">
+    <div class="mark" aria-hidden="true">☾</div><div class="eyebrow">VERDANT ARCANA</div><h1>苔光塔罗</h1>
+    <p class="description">让偶然，成为理解自己的入口。<br>塔罗 · 星骰 · 雷诺曼 · 女巫符文</p>
+    <button id="begin" class="begin">开启旅途</button><progress id="progress" max="1" value="0" hidden></progress>
+    <div id="status" role="status" aria-live="polite">首次打开需要加载游戏资源</div>
+    <p class="foot">建议横屏或电脑浏览器游玩<br>手记保存在当前浏览器，可在游戏中导出</p>
+  </div></section>
+  <nav id="toolbar" aria-label="网页控制"><button id="fullscreen">全屏</button><button id="help">网页说明</button></nav>
+  <div id="portrait">横屏游玩可获得完整牌桌视野</div>
+  <script>
+    const canvas=document.getElementById('unity-canvas'),begin=document.getElementById('begin'),status=document.getElementById('status'),progress=document.getElementById('progress');
+    let player;
+    function failure(message){status.textContent=message;begin.disabled=false;begin.textContent='重新加载';begin.onclick=()=>location.reload()}
+    document.getElementById('fullscreen').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen();else document.getElementById('game').requestFullscreen().catch(()=>status.textContent='当前浏览器未提供全屏。')};
+    document.getElementById('help').onclick=()=>alert('手记与设置保存在当前浏览器、当前网站中。清除网站数据会删除这些记录，请使用手记页的导出按钮备份。\n\nAI 解读需填写自己的文本模型接口，接口需允许浏览器跨域请求（CORS）。密钥只保留在本次运行中。\n\n推荐使用电脑 Chrome 或 Edge；手机请横屏。');
+    if(location.protocol==='file:'){status.textContent='请双击同目录的「启动网页游戏.cmd」，或将整个文件夹部署到网站。';begin.disabled=true}
+    begin.onclick=()=>{
+      begin.disabled=true;begin.textContent='正在准备牌桌…';progress.hidden=false;
+      if(!window.WebAssembly||!window.crypto||!window.crypto.getRandomValues){failure('浏览器缺少所需功能，请使用新版 Chrome 或 Edge。');return}
+      const script=document.createElement('script');script.src='Build/b1cbd509a9038e51d86c8f0ae3bdd45c.loader.js';
+      script.onerror=()=>failure('游戏加载失败，请确认 Build 文件夹完整，并通过本地启动器或网站打开。');
+      script.onload=()=>createTuanjieInstance(canvas,{
+        dataUrl:'Build/3f1da3273f83a771c1d0f58ad1f30b16.data.unityweb',frameworkUrl:'Build/9aab8eeb2451652616ceb2e5ce256125.framework.js.unityweb',codeUrl:'Build/4210145259fc7849e5ceaeb6c5b04f1f.wasm.unityweb',
+        streamingAssetsUrl:'StreamingAssets',companyName:'Verdant Atelier',productName:'Verdant Arcana',productVersion:'0.7.1',
+        devicePixelRatio:Math.min(window.devicePixelRatio||1,1.5),
+        showBanner:(message,type)=>{if(type==='error')failure(message);else console.warn(message)}
+      },value=>{progress.value=value;status.textContent='正在加载 '+Math.round(value*100)+'%'}).then(instance=>{
+        player=instance;window.arcanaPlayer=instance;document.getElementById('welcome').style.display='none';document.getElementById('toolbar').style.display='flex';canvas.focus();
+      }).catch(()=>failure('游戏未能启动，请刷新重试，或换用电脑 Chrome / Edge。'));
+      document.body.appendChild(script);
+    };
+  </script>
+</body>
+</html>
